@@ -1,0 +1,3 @@
+[submodule "submodules/Arduino"]
+	path = submodules/Arduino
+	url = https://github.com/esp8266/Arduino
