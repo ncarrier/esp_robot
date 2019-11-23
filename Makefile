@@ -44,26 +44,52 @@ CXXFLAGS := \
 	-fdata-sections \
 	-fno-exceptions
 
+esp_robot: websockets.a servo.a esp_robot.o
+	echo $@
+
+servo_dir := submodules/Arduino/libraries/Servo/src/
+servo_includes := \
+	-I$(servo_dir)
+servo_modules := \
+	Servo
+servo_obj_files := $(addprefix $(servo_dir),$(addsuffix .o,$(servo_modules)))
+
+servo.a: $(servo_obj_files)
+	$(AR) cru $@ $^
+
+$(servo_obj_files): $(servo_dir)%.o: $(servo_dir)%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(servo_includes) $^ -c -o $@
+
+esp8266wifi_dir := submodules/Arduino/libraries/ESP8266WiFi/src/
+esp8266webserver_dir := submodules/Arduino/libraries/ESP8266WebServer/src/
+esp8266mdns_dir := submodules/Arduino/libraries/ESP8266mDNS/src/
+hash_dir := submodules/Arduino/libraries/Hash/src
+
 websockets_dir := submodules/arduinoWebSockets/src/
-websockets_includes := -I$(websockets_dir) \
-	-Isubmodules/Arduino/libraries/ESP8266WiFi/src/ \
-	-Isubmodules/Arduino/libraries/Hash/src
-	 # TODO should move to wifi and hash
-	 
+websockets_includes := \
+	-I$(esp8266wifi_dir) \
+	-I$(hash_dir) \
+	-I$(websockets_dir)
 websockets_modules := \
 	SocketIOclient \
 	WebSockets
-
-websockets_src_files := $(addprefix $(websockets_dir),$(addsuffix .cpp,$(websockets_modules)))
 websockets_obj_files := $(addprefix $(websockets_dir),$(addsuffix .o,$(websockets_modules)))
 
 websockets.a: $(websockets_obj_files)
-	echo $^
 	$(AR) cru $@ $^
 
 $(websockets_obj_files): $(websockets_dir)%.o: $(websockets_dir)%.cpp
-	echo here
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(websockets_includes) $^ -c -o $@
+
+esp_robot_includes := \
+	-I$(servo_dir) \
+	-I$(esp8266wifi_dir) \
+	-I$(esp8266webserver_dir) \
+	-I$(esp8266mdns_dir) \
+	-I$(websockets_dir)
+
+esp_robot.o: esp_robot.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(esp_robot_includes) $^ -c -o $@
 
 help:
 	echo $(websockets_obj_files)
@@ -74,17 +100,10 @@ help:
 	echo $(websockets_dir)/%.o
 
 clean:
+	rm -rf $(servo_obj_files)
 	rm -rf $(websockets_obj_files)
+	rm -rf esp_robot.o
+	rm -rf servo.a
 	rm -rf websockets.a
 
 .PHONY:clean
-
-
-
-#	-I/home/nicolas/.arduino15/packages/esp8266/hardware/esp8266/2.6.1/libraries/Servo/src \
-#	-I/home/nicolas/.arduino15/packages/esp8266/hardware/esp8266/2.6.1/libraries/ESP8266WiFi/src \
-#	-I/home/nicolas/.arduino15/packages/esp8266/hardware/esp8266/2.6.1/libraries/ESP8266WebServer/src \
-#	-I/home/nicolas/.arduino15/packages/esp8266/hardware/esp8266/2.6.1/libraries/ESP8266mDNS/src \
-#	-Isubmodules/arduinoWebSockets/src/ \
-#	-I/home/nicolas/.arduino15/packages/esp8266/hardware/esp8266/2.6.1/libraries/Hash/src
-#
