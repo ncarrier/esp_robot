@@ -44,7 +44,7 @@ CXXFLAGS := \
 	-fdata-sections \
 	-fno-exceptions
 
-esp_robot: websockets.a servo.a esp_robot.o
+esp_robot: websockets.a servo.a esp8266wifi.a esp_robot.o
 	echo $@
 
 servo_dir := submodules/Arduino/libraries/Servo/src/
@@ -61,6 +61,31 @@ $(servo_obj_files): $(servo_dir)%.o: $(servo_dir)%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(servo_includes) $^ -c -o $@
 
 esp8266wifi_dir := submodules/Arduino/libraries/ESP8266WiFi/src/
+esp8266wifi_includes := \
+	-I$(esp8266wifi_dir)
+esp8266wifi_modules := \
+	ESP8266WiFiAP \
+	ESP8266WiFi \
+	BearSSLHelpers \
+	CertStoreBearSSL \
+	ESP8266WiFiGeneric \
+	ESP8266WiFiMulti \
+	ESP8266WiFiSTA-WPS \
+	ESP8266WiFiSTA \
+	ESP8266WiFiScan \
+	WiFiClient \
+	WiFiClientSecureAxTLS \
+	WiFiClientSecureBearSSL \
+	WiFiServer \
+	WiFiServerSecureAxTLS \
+	WiFiServerSecureBearSSL \
+	WiFiUdp
+esp8266wifi_obj_files := $(addprefix $(esp8266wifi_dir),$(addsuffix .o,$(esp8266wifi_modules)))
+$(esp8266wifi_obj_files): $(esp8266wifi_dir)%.o: $(esp8266wifi_dir)%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(esp8266wifi_includes) $^ -c -o $@
+esp8266wifi.a: $(esp8266wifi_obj_files)
+	$(AR) cru $@ $^
+
 esp8266webserver_dir := submodules/Arduino/libraries/ESP8266WebServer/src/
 esp8266mdns_dir := submodules/Arduino/libraries/ESP8266mDNS/src/
 hash_dir := submodules/Arduino/libraries/Hash/src
@@ -92,18 +117,18 @@ esp_robot.o: esp_robot.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(esp_robot_includes) $^ -c -o $@
 
 help:
+	echo $(esp8266wifi_obj_files)
+	echo $(esp8266wifi_includes)
 	echo $(websockets_obj_files)
-	echo $(websockets_dir)
-	echo $(websockets_src_files)
-	echo $(websockets_obj_files)
-	echo $(CFLAGS)
 	echo $(websockets_dir)/%.o
 
 clean:
 	rm -rf $(servo_obj_files)
 	rm -rf $(websockets_obj_files)
-	rm -rf esp_robot.o
+	rm -rf $(esp8266wifi_obj_files)
 	rm -rf servo.a
 	rm -rf websockets.a
+	rm -rf esp8266wifi.a
+	rm -rf esp_robot.o
 
 .PHONY:clean
