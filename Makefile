@@ -19,8 +19,68 @@ Q ?= @
 
 .DEFAULT_GOAL := esp_robot
 
-esp_robot: $(archives) esp_robot.o
-	echo $@
+# TODO --path argument seems incorrect
+esp_robot: esp_robot.elf
+	submodules/Arduino/tools/python3/3.7.2-post1/python3 \
+	submodules/Arduino/hardware/esp8266/2.6.1/tools/elf2bin.py \
+	--ebootsubmodules/Arduino/hardware/esp8266/2.6.1/bootloaders/eboot/eboot.elf \
+	--app $^ \
+	--flash_mode dio \
+	--flash_freq 40 \
+	--flash_size 4M \
+	--path submodules/Arduino/tools/xtensa-lx106-elf-gcc/2.5.0-4-b40a506/bin \
+	--out $@
+
+esp_robot.elf:$(archives) esp_robot.o local.eagle.app.v6.common.ld
+	$(CC) \
+	-fno-exceptions \
+	-Wl,-Map \
+	-Wl,esp_robot.cpp.map \
+	-g \
+	-w \
+	-Os \
+	-nostdlib \
+	-Wl,--no-check-sections \
+	-u app_entry \
+	-u _printf_float \
+	-u _scanf_float \
+	-Wl,-static \
+	-Lsubmodules/Arduino/tools/sdk/lib \
+	-Lsubmodules/Arduino/tools/sdk/lib/NONOSDK22x_191024 \
+	-Lsubmodules/Arduino/tools/sdk/ld \
+	-Lsubmodules/Arduino/tools/sdk/libc/xtensa-lx106-elf/lib \
+	-Teagle.flash.4m2m.ld \
+	-Wl,--gc-sections \
+	-Wl,-wrap,system_restart_local \
+	-Wl,-wrap,spi_flash_read \
+	-o $@ \
+	-Wl,--start-group \
+	$(archives) \
+	esp_robot.o \
+	-lhal \
+	-lphy \
+	-lpp \
+	-lnet80211 \
+	-llwip2-536-feat \
+	-lwpa \
+	-lcrypto \
+	-lmain \
+	-lwps \
+	-lbearssl \
+	-laxtls \
+	-lespnow \
+	-lsmartconfig \
+	-lairkiss \
+	-lwpa2 \
+	-lstdc++ \
+	-lm \
+	-lc \
+	-lgcc \
+	-Wl,--end-group \
+	-L.
+
+local.eagle.app.v6.common.ld: submodules/Arduino/tools/sdk/ld/eagle.app.v6.common.ld.h
+	$(CC) -CC -E -P -DVTABLES_IN_FLASH $^ -o $@
 
 esp_robot_includes := \
 	-I$(servo_dir) \
@@ -42,5 +102,6 @@ clean:
 	@rm -rf $(objects)
 	@rm -rf $(archives)
 	@rm -rf esp_robot.o
+	@rm -rf local.eagle.app.v6.common.ld
 
 .PHONY:clean help

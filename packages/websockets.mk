@@ -5,6 +5,7 @@ websockets_includes := \
 	-I$(websockets_dir)
 websockets_modules := \
 	SocketIOclient \
+	WebSocketsServer \
 	WebSockets
 
 $(eval $(package))
