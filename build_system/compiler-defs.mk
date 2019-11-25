@@ -27,6 +27,7 @@ CPPFLAGS := $(definitions) \
 	$(includes)
 
 CXXFLAGS := \
+	-c \
 	-w \
 	-Os \
 	-g \
@@ -39,3 +40,9 @@ CXXFLAGS := \
 	-ffunction-sections \
 	-fdata-sections \
 	-fno-exceptions
+ASFLAGS := \
+	-c \
+	-g \
+	-x assembler-with-cpp \
+	-MMD \
+	-mlongcalls

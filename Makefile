@@ -8,10 +8,13 @@ include packages/hash.mk
 include packages/esp8266webserver.mk
 include packages/servo.mk
 include packages/websockets.mk
+include packages/core.mk
 
 tools_bin := submodules/Arduino/tools/xtensa-lx106-elf/bin
-CXX := $(tools_bin)/xtensa-lx106-elf-g++
-AR := $(tools_bin)/xtensa-lx106-elf-ar
+tool_chain := $(tools_bin)/xtensa-lx106-elf-
+CXX := $(tool_chain)g++
+CC := $(tool_chain)gcc
+AR := $(tool_chain)ar
 Q ?= @
 
 .DEFAULT_GOAL := esp_robot
