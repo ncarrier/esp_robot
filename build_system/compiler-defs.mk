@@ -1,4 +1,4 @@
-tools_bin := submodules/Arduino/tools/xtensa-lx106-elf/bin
+tools_bin := $(tools)xtensa-lx106-elf/bin
 tool_chain := $(tools_bin)/xtensa-lx106-elf-
 CXX := $(tool_chain)g++
 CC := $(tool_chain)gcc
@@ -23,9 +23,9 @@ definitions := \
 	-DESP8266
 
 includes := \
-	-Isubmodules/Arduino/tools/sdk/include \
-	-Isubmodules/Arduino/tools/sdk/lwip2/include \
-	-Isubmodules/Arduino/tools/sdk/libc/xtensa-lx106-elf/include \
+	-I$(tools)sdk/include \
+	-I$(tools)sdk/lwip2/include \
+	-I$(tools)sdk/libc/xtensa-lx106-elf/include \
 	-Isubmodules/Arduino/cores/esp8266 \
 	-Isubmodules/Arduino/variants/nodemcu
 

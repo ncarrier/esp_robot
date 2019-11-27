@@ -1,5 +1,5 @@
-include build_system/compiler-defs.mk
 include build_system/utils.mk
+include build_system/compiler-defs.mk
 
 #inclusion order is important
 include packages/esp8266wifi.mk
@@ -12,11 +12,13 @@ include packages/core.mk
 
 Q ?= @
 
-.DEFAULT_GOAL := esp_robot
+.DEFAULT_GOAL := all
+
+all: esp_robot summary
 
 esp_robot: esp_robot.elf
 	@echo Generating final payload $@
-	$(Q) submodules/Arduino/tools/python3/python3 \
+	$(Q) $(python3) \
 		submodules/Arduino/tools/elf2bin.py \
 		--eboot submodules/Arduino/bootloaders/eboot/eboot.elf \
 		--app $^ \
@@ -25,6 +27,9 @@ esp_robot: esp_robot.elf
 		--flash_size 4M \
 		--path $(tools_bin) \
 		--out $@ || echo plop
+
+summary: esp_robot.elf
+	$(Q) $(python3) $(tools)sizes.py --elf $^ --path $(tools_bin)
 
 esp_robot.elf:$(archives) esp_robot.cpp.o local.eagle.app.v6.common.ld
 	@echo Linking $@
@@ -103,4 +108,4 @@ clean:
 	@rm -rf esp_robot
 	@rm -rf local.eagle.app.v6.common.ld
 
-.PHONY:clean help
+.PHONY:all clean help summary

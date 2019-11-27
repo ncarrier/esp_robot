@@ -30,3 +30,6 @@ objects := $$(objects) $$($(1)_obj_files)
 endef #inner-package
 
 package = $(call inner-package,$(pkgname))
+
+tools := submodules/Arduino/tools/
+python3 ?= $(tools)python3/python3
