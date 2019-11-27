@@ -23,11 +23,11 @@ definitions := \
 	-DESP8266
 
 includes := \
-	-I$(tools)sdk/include \
-	-I$(tools)sdk/lwip2/include \
-	-I$(tools)sdk/libc/xtensa-lx106-elf/include \
-	-Isubmodules/Arduino/cores/esp8266 \
-	-Isubmodules/Arduino/variants/nodemcu
+	-I$(sdk)include \
+	-I$(sdk)lwip2/include \
+	-I$(sdk)libc/xtensa-lx106-elf/include \
+	-I$(arduino)cores/esp8266 \
+	-I$(arduino)variants/nodemcu
 
 CPPFLAGS := $(definitions) \
 	$(includes)

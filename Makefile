@@ -19,8 +19,8 @@ all: esp_robot summary
 esp_robot: esp_robot.elf
 	@echo Generating final payload $@
 	$(Q) $(python3) \
-		submodules/Arduino/tools/elf2bin.py \
-		--eboot submodules/Arduino/bootloaders/eboot/eboot.elf \
+		$(tools)elf2bin.py \
+		--eboot $(arduino)bootloaders/eboot/eboot.elf \
 		--app $^ \
 		--flash_mode dio \
 		--flash_freq 40 \
@@ -45,10 +45,10 @@ esp_robot.elf:$(archives) esp_robot.cpp.o local.eagle.app.v6.common.ld
 	-u _printf_float \
 	-u _scanf_float \
 	-Wl,-static \
-	-Lsubmodules/Arduino/tools/sdk/lib \
-	-Lsubmodules/Arduino/tools/sdk/lib/NONOSDK22x_191024 \
-	-Lsubmodules/Arduino/tools/sdk/ld \
-	-Lsubmodules/Arduino/tools/sdk/libc/xtensa-lx106-elf/lib \
+	-L$(sdk)lib \
+	-L$(sdk)lib/NONOSDK22x_191024 \
+	-L$(sdk)ld \
+	-L$(sdk)libc/xtensa-lx106-elf/lib \
 	-Teagle.flash.4m2m.ld \
 	-Wl,--gc-sections \
 	-Wl,-wrap,system_restart_local \
@@ -79,7 +79,7 @@ esp_robot.elf:$(archives) esp_robot.cpp.o local.eagle.app.v6.common.ld
 	-Wl,--end-group \
 	-L.
 
-local.eagle.app.v6.common.ld: submodules/Arduino/tools/sdk/ld/eagle.app.v6.common.ld.h
+local.eagle.app.v6.common.ld: $(sdk)ld/eagle.app.v6.common.ld.h
 	@echo Generating $@
 	$(Q) $(CC) -CC -E -P -DVTABLES_IN_FLASH $^ -o $@
 

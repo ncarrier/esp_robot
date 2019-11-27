@@ -31,5 +31,8 @@ endef #inner-package
 
 package = $(call inner-package,$(pkgname))
 
-tools := submodules/Arduino/tools/
+arduino := submodules/Arduino/
+tools := $(arduino)tools/
+sdk := $(tools)sdk/
+libraries := $(arduino)libraries
 python3 ?= $(tools)python3/python3

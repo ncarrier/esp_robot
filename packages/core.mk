@@ -1,5 +1,5 @@
-core_dir := submodules/Arduino/cores/esp8266/
-core_cpp := \
+$(pkgname)_dir := $(arduino)cores/esp8266/
+$(pkgname)_cpp := \
 	Esp-frag \
 	Esp-version \
 	FS \
@@ -61,9 +61,9 @@ core_cpp := \
 	spiffs/spiffs_hydrogen \
 	spiffs/spiffs_nucleus \
 	umm_malloc/umm_malloc
-core_S := \
+$(pkgname)_S := \
 	cont
-core_c := \
+$(pkgname)_c := \
 	umm_malloc/umm_info \
 	umm_malloc/umm_poison \
 	umm_malloc/umm_local \

@@ -1,5 +1,5 @@
-esp8266webserver_dir := submodules/Arduino/libraries/ESP8266WebServer/src/
-esp8266webserver_cpp := \
+$(pkgname)_dir := $(libraries)/ESP8266WebServer/src/
+$(pkgname)_cpp := \
 	detail/mimetable
 
 $(eval $(package))

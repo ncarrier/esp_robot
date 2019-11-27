@@ -1,5 +1,5 @@
-servo_dir := submodules/Arduino/libraries/Servo/src/
-servo_cpp := \
+$(pkgname)_dir := $(libraries)/Servo/src/
+$(pkgname)_cpp := \
 	Servo
 
 $(eval $(package))

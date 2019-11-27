@@ -1,5 +1,5 @@
-esp8266wifi_dir := submodules/Arduino/libraries/ESP8266WiFi/src/
-esp8266wifi_cpp := \
+$(pkgname)_dir := $(libraries)/ESP8266WiFi/src/
+$(pkgname)_cpp := \
 	ESP8266WiFiAP \
 	ESP8266WiFi \
 	BearSSLHelpers \

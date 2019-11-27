@@ -1,7 +1,7 @@
-esp8266mdns_dir := submodules/Arduino/libraries/ESP8266mDNS/src/
-esp8266mdns_includes := \
+$(pkgname)_dir := $(libraries)/ESP8266mDNS/src/
+$(pkgname)_includes := \
 	-I$(esp8266wifi_dir)
-esp8266mdns_cpp:= \
+$(pkgname)_cpp:= \
 	LEAmDNS_Control \
 	ESP8266mDNS \
 	ESP8266mDNS_Legacy \
