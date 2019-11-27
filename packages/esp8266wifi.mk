@@ -1,6 +1,4 @@
 esp8266wifi_dir := submodules/Arduino/libraries/ESP8266WiFi/src/
-esp8266wifi_includes := \
-	-I$(esp8266wifi_dir)
 esp8266wifi_modules := \
 	ESP8266WiFiAP \
 	ESP8266WiFi \

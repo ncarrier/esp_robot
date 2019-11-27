@@ -1,6 +1,4 @@
 core_dir := submodules/Arduino/cores/esp8266/
-core_includes := \
-	-I$(core_dir)
 core_modules := \
 	Esp-frag \
 	Esp-version \
@@ -65,5 +63,10 @@ core_modules := \
 	umm_malloc/umm_malloc
 core_assembler := \
 	cont
+core_c_sources := \
+	umm_malloc/umm_info \
+	umm_malloc/umm_poison \
+	umm_malloc/umm_local \
+	umm_malloc/umm_integrity
 
 $(eval $(package))

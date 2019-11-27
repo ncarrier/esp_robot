@@ -26,20 +26,34 @@ includes := \
 CPPFLAGS := $(definitions) \
 	$(includes)
 
-CXXFLAGS := \
+base_flags := \
 	-c \
 	-w \
 	-Os \
 	-g \
 	-mlongcalls \
 	-mtext-section-literals \
-	-fno-rtti \
 	-falign-functions=4 \
-	-std=gnu++11 \
 	-MMD \
 	-ffunction-sections \
 	-fdata-sections \
 	-fno-exceptions
+
+CXXFLAGS := \
+	$(base_flags) \
+	-std=gnu++11 \
+	-fno-rtti
+
+CFLAGS := \
+	$(base_flags) \
+	-Wpointer-arith \
+	-Wno-implicit-function-declaration \
+	-std=gnu99 \
+	-Wl,-EL \
+	-fno-inline-functions \
+	-nostdlib \
+	-Wmissing-prototypes -Werror
+
 ASFLAGS := \
 	-c \
 	-g \
