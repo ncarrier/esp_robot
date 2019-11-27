@@ -11,10 +11,15 @@ include packages/websockets.mk
 include packages/core.mk
 
 Q ?= @
+PORT ?= /dev/ttyUSB0
 
 .DEFAULT_GOAL := all
 
-all: esp_robot summary
+all: esp_robot summary flash
+
+flash: esp_robot
+	$(python3) $(tools)upload.py --chip esp8266 --port $(PORT) \
+		--baud 115200 --before default_reset --after hard_reset $^
 
 esp_robot: esp_robot.elf
 	@echo Generating final payload $@
@@ -108,4 +113,4 @@ clean:
 	@rm -rf esp_robot
 	@rm -rf local.eagle.app.v6.common.ld
 
-.PHONY:all clean help summary
+.PHONY:all clean flash help summary
