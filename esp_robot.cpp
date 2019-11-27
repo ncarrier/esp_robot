@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <inttypes.h>
 #include <Servo.h>
 #include <ESP8266WiFi.h>
