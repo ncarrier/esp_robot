@@ -4,9 +4,9 @@ define inner-package
 
 $(1)_includes += -I$$($(1)_dir)
 
-$(1)_obj_files := $(addprefix $($(1)_dir),$(addsuffix .cpp.o,$($(1)_modules))) \
-	$(addprefix $($(1)_dir),$(addsuffix .S.o,$($(1)_assembler))) \
-	$(addprefix $($(1)_dir),$(addsuffix .c.o,$($(1)_c_sources)))
+$(1)_obj_files := $(addprefix $($(1)_dir),$(addsuffix .cpp.o,$($(1)_cpp))) \
+	$(addprefix $($(1)_dir),$(addsuffix .S.o,$($(1)_S))) \
+	$(addprefix $($(1)_dir),$(addsuffix .c.o,$($(1)_c)))
 
 $$($(1)_dir)%.cpp.o: $$($(1)_dir)%.cpp
 	@echo [C++] Compiling $$^

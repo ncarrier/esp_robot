@@ -1,5 +1,5 @@
 hash_dir := submodules/Arduino/libraries/Hash/src/
-hash_modules := \
+hash_cpp := \
 	Hash
 
 $(eval $(package))

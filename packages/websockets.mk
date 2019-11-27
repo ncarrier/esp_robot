@@ -5,11 +5,11 @@ websockets_includes := \
 	-I$(esp8266wifi_dir) \
 	-I$(hash_dir) \
 	-I$(servo_dir)
-websockets_modules := \
+websockets_cpp := \
 	SocketIOclient \
 	WebSocketsServer \
 	WebSockets
-websockets_c_sources := \
+websockets_c := \
 	libb64/cdecode \
 	libb64/cencode \
 	libsha1/libsha1
