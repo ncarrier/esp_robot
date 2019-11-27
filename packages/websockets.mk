@@ -1,10 +1,10 @@
 $(pkgname)_dir := submodules/arduinoWebSockets/src/
 $(pkgname)_includes := \
-	-I$(esp8266mdns_dir) \
-	-I$(esp8266webserver_dir) \
-	-I$(esp8266wifi_dir) \
-	-I$(hash_dir) \
-	-I$(servo_dir)
+	-I$(root_dir)$(esp8266mdns_dir) \
+	-I$(root_dir)$(esp8266webserver_dir) \
+	-I$(root_dir)$(esp8266wifi_dir) \
+	-I$(root_dir)$(hash_dir) \
+	-I$(root_dir)$(servo_dir)
 $(pkgname)_cpp := \
 	SocketIOclient \
 	WebSocketsServer \

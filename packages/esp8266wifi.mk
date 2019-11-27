@@ -1,4 +1,4 @@
-$(pkgname)_dir := $(libraries)/ESP8266WiFi/src/
+$(pkgname)_dir := submodules/Arduino/libraries/ESP8266WiFi/src/
 $(pkgname)_cpp := \
 	ESP8266WiFiAP \
 	ESP8266WiFi \

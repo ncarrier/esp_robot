@@ -1,4 +1,4 @@
-$(pkgname)_dir := $(arduino)cores/esp8266/
+$(pkgname)_dir := submodules/Arduino/cores/esp8266/
 $(pkgname)_cpp := \
 	Esp-frag \
 	Esp-version \

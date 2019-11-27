@@ -1,4 +1,4 @@
-$(pkgname)_dir := $(libraries)/Servo/src/
+$(pkgname)_dir := submodules/Arduino/libraries/Servo/src/
 $(pkgname)_cpp := \
 	Servo
 

@@ -1,14 +1,17 @@
-include build_system/utils.mk
-include build_system/compiler-defs.mk
+VPATH := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+root_dir := $(VPATH)
+
+include $(root_dir)build_system/utils.mk
+include $(root_dir)build_system/compiler-defs.mk
 
 #inclusion order is important
-include packages/esp8266wifi.mk
-include packages/esp8266mdns.mk
-include packages/hash.mk
-include packages/esp8266webserver.mk
-include packages/servo.mk
-include packages/websockets.mk
-include packages/core.mk
+include $(root_dir)packages/esp8266wifi.mk
+include $(root_dir)packages/esp8266mdns.mk
+include $(root_dir)packages/hash.mk
+include $(root_dir)packages/esp8266webserver.mk
+include $(root_dir)packages/servo.mk
+include $(root_dir)packages/websockets.mk
+include $(root_dir)packages/core.mk
 
 Q ?= @
 PORT ?= /dev/ttyUSB0
@@ -31,7 +34,7 @@ esp_robot: esp_robot.elf
 		--flash_freq 40 \
 		--flash_size 4M \
 		--path $(tools_bin) \
-		--out $@ || echo plop
+		--out $@
 
 summary: esp_robot.elf
 	$(Q) $(python3) $(tools)sizes.py --elf $^ --path $(tools_bin)
@@ -92,11 +95,11 @@ local.eagle.app.v6.common.ld: $(sdk)ld/eagle.app.v6.common.ld.h
 	$(Q) $(CC) -CC -E -P -DVTABLES_IN_FLASH $^ -o $@
 
 esp_robot_includes := \
-	-I$(servo_dir) \
-	-I$(esp8266wifi_dir) \
-	-I$(esp8266webserver_dir) \
-	-I$(esp8266mdns_dir) \
-	-I$(websockets_dir)
+	-I$(root_dir)$(servo_dir) \
+	-I$(root_dir)$(esp8266wifi_dir) \
+	-I$(root_dir)$(esp8266webserver_dir) \
+	-I$(root_dir)$(esp8266mdns_dir) \
+	-I$(root_dir)$(websockets_dir)
 
 esp_robot.cpp.o: esp_robot.cpp
 	@echo [C++] Compiling $^

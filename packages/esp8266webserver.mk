@@ -1,4 +1,4 @@
-$(pkgname)_dir := $(libraries)/ESP8266WebServer/src/
+$(pkgname)_dir := submodules/Arduino/libraries/ESP8266WebServer/src/
 $(pkgname)_cpp := \
 	detail/mimetable
 
