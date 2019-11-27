@@ -36,24 +36,45 @@ esp_robot: esp_robot.elf
 summary: esp_robot.elf
 	$(Q) $(python3) $(tools)sizes.py --elf $^ --path $(tools_bin)
 
+esp_robot_link_locations := \
+	lib \
+	lib/NONOSDK22x_191024 \
+	ld \
+	libc/xtensa-lx106-elf/lib
+
+esp_robot_libraries := \
+	hal \
+	phy \
+	pp \
+	net80211 \
+	lwip2-536-feat \
+	wpa \
+	crypto \
+	main \
+	wps \
+	bearssl \
+	axtls \
+	espnow \
+	smartconfig \
+	airkiss \
+	wpa2 \
+	stdc++ \
+	m \
+	c \
+	gcc \
+
 esp_robot.elf:$(archives) esp_robot.cpp.o local.eagle.app.v6.common.ld
 	@echo Linking $@
 	$(Q) $(CC) \
-	-fno-exceptions \
 	-Wl,-Map \
 	-Wl,esp_robot.cpp.map \
-	-g \
-	-Os \
-	-nostdlib \
+	$(ultra_base_flags) \
 	-Wl,--no-check-sections \
 	-u app_entry \
 	-u _printf_float \
 	-u _scanf_float \
 	-Wl,-static \
-	-L$(sdk)lib \
-	-L$(sdk)lib/NONOSDK22x_191024 \
-	-L$(sdk)ld \
-	-L$(sdk)libc/xtensa-lx106-elf/lib \
+	$(foreach l,$(esp_robot_link_locations),-L$(sdk)$(l)) \
 	-Teagle.flash.4m2m.ld \
 	-Wl,--gc-sections \
 	-Wl,-wrap,system_restart_local \
@@ -62,25 +83,7 @@ esp_robot.elf:$(archives) esp_robot.cpp.o local.eagle.app.v6.common.ld
 	-Wl,--start-group \
 	$(archives) \
 	esp_robot.cpp.o \
-	-lhal \
-	-lphy \
-	-lpp \
-	-lnet80211 \
-	-llwip2-536-feat \
-	-lwpa \
-	-lcrypto \
-	-lmain \
-	-lwps \
-	-lbearssl \
-	-laxtls \
-	-lespnow \
-	-lsmartconfig \
-	-lairkiss \
-	-lwpa2 \
-	-lstdc++ \
-	-lm \
-	-lc \
-	-lgcc \
+	$(foreach l,$(esp_robot_libraries),-l$(l)) \
 	-Wl,--end-group \
 	-L.
 
@@ -100,9 +103,11 @@ esp_robot.cpp.o: esp_robot.cpp
 	$(Q) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(esp_robot_includes) $^ -o $@
 
 help:
-	echo $(archives)
-	echo $(servo_includes)
-	echo $(websockets_includes)
+	@echo $(archives)
+	@echo $(servo_includes)
+	@echo $(websockets_includes)
+	@echo $(foreach l,$(esp_robot_link_locations),-L$(sdk)$(l))
+	@echo $(foreach l,$(esp_robot_libraries),-l$(l))
 
 clean:
 	@rm -rf $(objects)

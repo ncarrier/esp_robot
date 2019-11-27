@@ -32,17 +32,24 @@ includes := \
 CPPFLAGS := $(definitions) \
 	$(includes)
 
+universal_flags := \
+	-Os \
+	-g
+
+ultra_base_flags := \
+	$(universal_flags) \
+	-nostdlib \
+	-fno-exceptions
+
 base_flags := \
 	-c \
-	-Os \
-	-g \
+	$(universal_flags) \
 	-mlongcalls \
 	-mtext-section-literals \
 	-falign-functions=4 \
 	-MMD \
 	-ffunction-sections \
-	-fdata-sections \
-	-fno-exceptions
+	-fdata-sections
 
 CXXFLAGS := \
 	$(base_flags) \
@@ -56,12 +63,11 @@ CFLAGS := \
 	-std=gnu99 \
 	-Wl,-EL \
 	-fno-inline-functions \
-	-nostdlib \
 	-Wmissing-prototypes
 
 ASFLAGS := \
 	-c \
-	-g \
+	$(universal_flags) \
 	-x assembler-with-cpp \
 	-MMD \
 	-mlongcalls
