@@ -10,12 +10,6 @@ include packages/servo.mk
 include packages/websockets.mk
 include packages/core.mk
 
-tools_bin := submodules/Arduino/tools/xtensa-lx106-elf/bin
-tool_chain := $(tools_bin)/xtensa-lx106-elf-
-CXX := $(tool_chain)g++
-CC := $(tool_chain)gcc
-AR := $(tool_chain)ar
-
 Q ?= @
 
 .DEFAULT_GOAL := esp_robot
@@ -39,7 +33,6 @@ esp_robot.elf:$(archives) esp_robot.cpp.o local.eagle.app.v6.common.ld
 	-Wl,-Map \
 	-Wl,esp_robot.cpp.map \
 	-g \
-	-w \
 	-Os \
 	-nostdlib \
 	-Wl,--no-check-sections \

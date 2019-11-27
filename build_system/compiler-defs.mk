@@ -1,3 +1,9 @@
+tools_bin := submodules/Arduino/tools/xtensa-lx106-elf/bin
+tool_chain := $(tools_bin)/xtensa-lx106-elf-
+CXX := $(tool_chain)g++
+CC := $(tool_chain)gcc
+AR := $(tool_chain)ar
+
 definitions := \
 	-D__ets__ \
 	-DICACHE_FLASH \
@@ -28,7 +34,6 @@ CPPFLAGS := $(definitions) \
 
 base_flags := \
 	-c \
-	-w \
 	-Os \
 	-g \
 	-mlongcalls \
@@ -52,7 +57,7 @@ CFLAGS := \
 	-Wl,-EL \
 	-fno-inline-functions \
 	-nostdlib \
-	-Wmissing-prototypes -Werror
+	-Wmissing-prototypes
 
 ASFLAGS := \
 	-c \
