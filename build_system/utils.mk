@@ -10,22 +10,22 @@ $(1)_obj_files := $(addprefix $($(1)_dir),$(addsuffix .cpp.o,$($(1)_cpp))) \
 
 $$($(1)_dir)%.cpp.o: $$($(1)_dir)%.cpp
 	@echo [C++] Compiling $$^
-	mkdir -p `dirname $$@`
+	@mkdir -p `dirname $$@`
 	$$(Q) $$(CXX) $$(CPPFLAGS) $$(CXXFLAGS) $$($(1)_includes) $$^ -o $$@
 
 $$($(1)_dir)%.c.o: $$($(1)_dir)%.c
 	@echo [C] Compiling $$^
-	mkdir -p `dirname $$@`
+	@mkdir -p `dirname $$@`
 	$$(Q) $$(CC) $$(CPPFLAGS) $(CFLAGS) $$($(1)_includes) $$^ -o $$@
 
 $$($(1)_dir)%.S.o: $$($(1)_dir)%.S
 	@echo [assembler] Compiling $$^
-	mkdir -p `dirname $$@`
+	@mkdir -p `dirname $$@`
 	$$(Q) $$(CC) $$(CPPFLAGS) $(ASFLAGS) -I$$($(1)_dir) $$^ -o $$@
 
 $(1).a: $$($(1)_obj_files)
 	@echo Creating package archive $$@
-	mkdir -p `dirname $$@`
+	@mkdir -p `dirname $$@`
 	$$(Q) $$(AR) cru $$@ $$^
 
 archives := $$(archives) $(1).a
