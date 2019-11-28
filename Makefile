@@ -37,10 +37,19 @@ flash_spiffs: spiffs
 	$(Q) PYTHONPATH=$(tools)pyserial/ $(tools)/python3/python3 \
 		$(tools)/esptool/esptool.py write_flash 0x200000 $^
 
-resources_dir := $(root_dir)resources/
-resources := $(wildcard $(resources_dir)*)
-spiffs:	$(resources)
-	$(tools)mkspiffs/mkspiffs -c $(resources_dir) $@
+resources_dir := resources/
+resources := $(wildcard $(root_dir)$(resources_dir)*)
+resources := $(resources:$(root_dir)%=%)
+compressed_resources := $(addsuffix .gz,$(resources))
+
+$(compressed_resources): %.gz: %
+	@mkdir -p resources
+	@echo "Compress resource $?"
+	$(Q) gzip $^ --keep --stdout > $@
+
+spiffs:	$(compressed_resources)
+	@echo "Create spiffs image"
+	$(Q) $(tools)mkspiffs/mkspiffs --debug 0 --create $(resources_dir) $@
 
 esp_robot: esp_robot.elf
 	@echo Generating final payload $@
