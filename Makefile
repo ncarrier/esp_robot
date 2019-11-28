@@ -18,11 +18,26 @@ PORT ?= /dev/ttyUSB0
 
 .DEFAULT_GOAL := all
 
-all: esp_robot summary flash
+all: summary flash
 
-flash: esp_robot
-	$(python3) $(tools)upload.py --chip esp8266 --port $(PORT) \
+flash: flash_esp_robot flash_spiffs
+
+# prevents parallel execution of the two flash targets
+flash_esp_robot: | flash_spiffs
+flash_esp_robot: esp_robot
+	@echo "Flashing the program"
+	$(Q) $(python3) $(tools)upload.py --chip esp8266 --port $(PORT) \
 		--baud 115200 --before default_reset --after hard_reset $^
+
+flash_spiffs: spiffs
+	@echo "Flashing the file system"
+	$(Q) PYTHONPATH=$(tools)pyserial/ $(tools)/python3/python3 \
+		$(tools)/esptool/esptool.py write_flash 0x200000 $^
+
+resources_dir := $(root_dir)resources/
+resources := $(wildcard $(resources_dir)*)
+spiffs:	$(resources)
+	$(tools)mkspiffs/mkspiffs -c $(resources_dir) $@
 
 esp_robot: esp_robot.elf
 	@echo Generating final payload $@
@@ -120,5 +135,6 @@ clean:
 	@rm -rf esp_robot.elf
 	@rm -rf esp_robot
 	@rm -rf local.eagle.app.v6.common.ld
+	@rm -rf spiffs
 
-.PHONY:all clean flash help summary
+.PHONY:all clean flash flash_esp_robot flash_spiffs help summary
