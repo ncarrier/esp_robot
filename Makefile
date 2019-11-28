@@ -13,6 +13,9 @@ include $(root_dir)packages/servo.mk
 include $(root_dir)packages/websockets.mk
 include $(root_dir)packages/core.mk
 
+depends := $(objects:.o=.d)
+include $(depends)
+
 Q ?= @
 PORT ?= /dev/ttyUSB0
 
@@ -128,13 +131,14 @@ help:
 	@echo $(foreach l,$(esp_robot_libraries),-l$(l))
 
 clean:
-	@rm -rf $(objects)
 	@rm -rf $(archives)
+	@rm -rf $(depends)
 	@rm -rf esp_robot.cpp.o
 	@rm -rf esp_robot.cpp.map
 	@rm -rf esp_robot.elf
 	@rm -rf esp_robot
 	@rm -rf local.eagle.app.v6.common.ld
+	@rm -rf $(objects)
 	@rm -rf spiffs
 
 .PHONY:all clean flash flash_esp_robot flash_spiffs help summary

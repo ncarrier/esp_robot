@@ -47,7 +47,6 @@ base_flags := \
 	-mlongcalls \
 	-mtext-section-literals \
 	-falign-functions=4 \
-	-MMD \
 	-ffunction-sections \
 	-fdata-sections
 
@@ -69,5 +68,4 @@ ASFLAGS := \
 	-c \
 	$(universal_flags) \
 	-x assembler-with-cpp \
-	-MMD \
 	-mlongcalls
