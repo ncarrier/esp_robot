@@ -21,16 +21,16 @@ PORT ?= /dev/ttyUSB0
 
 .DEFAULT_GOAL := all
 
-all: summary flash
+all: flash
 
 flash: flash_esp_robot flash_spiffs
 
 # prevents parallel execution of the two flash targets
 flash_esp_robot: | flash_spiffs
-flash_esp_robot: esp_robot
+flash_esp_robot: esp_robot summary
 	@echo "Flashing the program"
 	$(Q) $(python3) $(tools)upload.py --chip esp8266 --port $(PORT) \
-		--baud 115200 --before default_reset --after hard_reset $^
+		--baud 115200 --before default_reset --after hard_reset $<
 
 flash_spiffs: spiffs
 	@echo "Flashing the file system"
