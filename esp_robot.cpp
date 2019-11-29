@@ -62,6 +62,15 @@ void startWebSocket() { // Start a WebSocket server
   Serial.println("WebSocket server started.");
 }
 
+String getContentType(String filename){
+  if(filename.endsWith(".html")) return "text/html";
+  else if(filename.endsWith(".css")) return "text/css";
+  else if(filename.endsWith(".js")) return "application/javascript";
+  else if(filename.endsWith(".ico")) return "image/x-icon";
+  else if(filename.endsWith(".gz")) return "application/x-gzip";
+  return "text/plain";
+}
+
 bool handleFileRead(String path)
 {
 	Serial.println("handleFileRead: " + path);
@@ -71,10 +80,10 @@ bool handleFileRead(String path)
 	bool with_gz = SPIFFS.exists(pathWithGz);
 	if (with_gz || SPIFFS.exists(path))
 		if (with_gz)
-			path += ".gz";
+			path = pathWithGz;
 	if (SPIFFS.exists(path)) {
 		File file = SPIFFS.open(path, "r");
-		server.streamFile(file, "application/x-gzip");
+		server.streamFile(file, "text/html");
 		file.close();
 		return true;
 	}
@@ -93,6 +102,7 @@ void setup() {
   analogWrite(D3, 255); // V
   Serial.begin(115200);
   WiFi.softAP(ssid, password); //begin WiFi access point
+  SPIFFS.begin();
   startMDNS();
   startWebSocket();
   Serial.println("");
