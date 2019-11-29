@@ -48,6 +48,9 @@ base_flags := \
 	-mtext-section-literals \
 	-falign-functions=4 \
 	-ffunction-sections \
+	-Wall \
+	-Wextra \
+	-Wno-unused-parameter \
 	-fdata-sections
 
 CXXFLAGS := \
