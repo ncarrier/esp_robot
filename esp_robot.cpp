@@ -16,11 +16,6 @@ ESP8266WebServer server(80);
 WebSocketsServer webSocket(81);
 const char* mdnsName = "esp_robot";
 
-void html_index(void) {
-  server.send(200, "text/html", "<html><head></head><body><p>Hello world!</p></body></html>");
-}
-
-
 void startMDNS() { // Start the mDNS responder
   MDNS.begin(mdnsName);                        // start the multicast domain name server
   Serial.print("mDNS responder started: http://");
@@ -55,7 +50,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
 //      } else if (payload[0] == 'N') {                      // the browser sends an N when the rainbow effect is disabled
 //        rainbow = false;
 //      }
-//      break;
+      break;
+    default:
+      Serial.printf("unhandled websocket event type %d\n", type);
   }
 }
 
@@ -63,6 +60,26 @@ void startWebSocket() { // Start a WebSocket server
   webSocket.begin();                          // start the websocket server
   webSocket.onEvent(webSocketEvent);          // if there's an incomming websocket message, go to function 'webSocketEvent'
   Serial.println("WebSocket server started.");
+}
+
+bool handleFileRead(String path)
+{
+	Serial.println("handleFileRead: " + path);
+	if (path.endsWith("/"))
+		path += "index.html";
+	String pathWithGz = path + ".gz";
+	bool with_gz = SPIFFS.exists(pathWithGz);
+	if (with_gz || SPIFFS.exists(path))
+		if (with_gz)
+			path += ".gz";
+	if (SPIFFS.exists(path)) {
+		File file = SPIFFS.open(path, "r");
+		server.streamFile(file, "application/x-gzip");
+		file.close();
+		return true;
+	}
+	Serial.println("\tFile Not Found");
+	return false;
 }
 
 void setup() {
@@ -90,7 +107,10 @@ void setup() {
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.softAPIP());
-  server.on("/", html_index);
+  server.onNotFound([]() {                              // If the client requests any URI
+    if (!handleFileRead(server.uri()))                  // send it if it exists
+      server.send(404, "text/plain", "404: Not Found"); // otherwise, respond with a 404 (Not Found) error
+  });
   server.begin();
   Serial.println("Web server started!");
 }
