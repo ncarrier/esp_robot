@@ -8,4 +8,14 @@
 
 ## build
 
-    make
+    mkdir out
+    cd out
+    make -f ../Makefile # builds the program, the fs and flashes everything
+
+To only build the program:
+
+    make -f ../Makefile esp_robot
+
+More information on the targets available:
+
+    make -f ../Makefile help
