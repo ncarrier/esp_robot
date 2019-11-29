@@ -212,6 +212,7 @@ struct rgb rgb;
 
 void loop() {
   server.handleClient();
+  MDNS.update();
 //  delay(10);
 //  sensorValue = analogRead(A0);
 //  Serial.print("sensor = ");
