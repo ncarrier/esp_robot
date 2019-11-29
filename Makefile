@@ -133,11 +133,14 @@ esp_robot.cpp.o: esp_robot.cpp
 	$(Q) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(esp_robot_includes) $^ -o $@
 
 help:
-	@echo $(archives)
-	@echo $(servo_includes)
-	@echo $(websockets_includes)
-	@echo $(foreach l,$(esp_robot_link_locations),-L$(sdk)$(l))
-	@echo $(foreach l,$(esp_robot_libraries),-l$(l))
+	@echo "Available targets:"
+	@echo "\tall: builds and flashes everything (default target)"
+	@echo "\tesp_robot: the main program"
+	@echo "\tspiffs: the filesystem containing the resources"
+	@echo "\tflash: flashes (and builds if required) both the program and the file system"
+	@echo "\tflash_esp_robot: flashes (and builds if required) the program"
+	@echo "\tflash_spiffs: flashes (and builds if required) the file system"
+	@echo "\t<library_name>: builds only the corresponding library, available: $(archives)"
 
 clean:
 	@rm -rf $(archives)
