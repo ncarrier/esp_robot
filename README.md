@@ -19,3 +19,15 @@ To only build the program:
 More information on the targets available:
 
     make -f ../Makefile help
+
+## hacking
+
+Expect nothing to work.
+
+Code style should follow the Google C++ code style. The esp_robot.cpp file will
+be checked at compilation. Use the `lint` target to only check the style.
+In `tools/` is provided the eclipse settings for the C/C++ formatter.
+
+## license
+
+GPLv3
