@@ -65,6 +65,10 @@ static void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
       Serial.printf("[%u] get Text: %s\n", num, payload);
       break;
 
+    case WStype_PONG:
+      Serial.printf("[%u] Received a ping\n", num);
+      break;
+
     default:
       Serial.printf("unhandled websocket event type %d\n", type);
   }
@@ -157,5 +161,6 @@ void loop() {
   server.handleClient();
   MDNS.update();
   updateEyes();
+  web_socket.loop();
 //  servo.write(0);
 }
