@@ -48,7 +48,7 @@ static void startMdns() {
 }
 
 static void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
-                    size_t lenght) {
+                           size_t lenght) {
   switch (type) {
     case WStype_DISCONNECTED:
       Serial.printf("[%u] Disconnected!\n", num);
@@ -120,13 +120,12 @@ void setup() {
   SPIFFS.begin();
   startMdns();
   startWebSocket();
-  Serial.printf("Connected to %s \n", kSsid);
-  Serial.printf("IP address: ");
-  Serial.println(WiFi.softAPIP());
+  Serial.printf("Started Access Point %s \n", kSsid);
+  Serial.printf("IP address: %s\n", WiFi.softAPIP().toString().c_str());
   server.onNotFound([]() {
-        if (!handleFileRead(server.uri()))
-          server.send(404, "text/plain", "404: Not Found");
-      });
+    if (!handleFileRead(server.uri()))
+      server.send(404, "text/plain", "404: Not Found");
+  });
   server.begin();
   Serial.println("Web server started!");
 }
@@ -147,10 +146,10 @@ static void updateEyes() {
 }
 
 void loop() {
-  unsigned long current_time = millis(); // NOLINT
-  static unsigned long previous_time = current_time; // NOLINT
-  unsigned long elapsed = current_time - previous_time; // NOLINT
-  int64_t sleep_duration = kRefreshPeriod - (int64_t)elapsed;
+  unsigned long current_time = millis();  // NOLINT
+  static unsigned long previous_time = current_time;  // NOLINT
+  unsigned long elapsed = current_time - previous_time;  // NOLINT
+  int64_t sleep_duration = kRefreshPeriod - (int64_t) elapsed;
   if (sleep_duration > 0)
     delay(sleep_duration);
   previous_time = current_time;
