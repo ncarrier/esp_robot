@@ -5,6 +5,7 @@ include $(root_dir)build_system/utils.mk
 include $(root_dir)build_system/compiler-defs.mk
 
 #inclusion order is important
+include $(root_dir)packages/arduinojson.mk
 include $(root_dir)packages/esp8266wifi.mk
 include $(root_dir)packages/esp8266mdns.mk
 include $(root_dir)packages/hash.mk
@@ -122,10 +123,11 @@ local.eagle.app.v6.common.ld: $(sdk)ld/eagle.app.v6.common.ld.h
 	$(Q) $(CC) -CC -E -P -DVTABLES_IN_FLASH $^ -o $@
 
 esp_robot_includes := \
-	-I$(root_dir)$(servo_dir) \
-	-I$(root_dir)$(esp8266wifi_dir) \
-	-I$(root_dir)$(esp8266webserver_dir) \
+	-I$(root_dir)$(arduinojson_dir) \
 	-I$(root_dir)$(esp8266mdns_dir) \
+	-I$(root_dir)$(esp8266webserver_dir) \
+	-I$(root_dir)$(esp8266wifi_dir) \
+	-I$(root_dir)$(servo_dir) \
 	-I$(root_dir)$(websockets_dir)
 
 esp_robot.cpp.o: esp_robot.cpp | lint
