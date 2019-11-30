@@ -128,9 +128,12 @@ esp_robot_includes := \
 	-I$(root_dir)$(esp8266mdns_dir) \
 	-I$(root_dir)$(websockets_dir)
 
-esp_robot.cpp.o: esp_robot.cpp
+esp_robot.cpp.o: esp_robot.cpp | lint
 	@echo [C++] Compiling $^
 	$(Q) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(esp_robot_includes) $^ -o $@
+
+lint: esp_robot.cpp
+	cpplint --output=eclipse $^
 
 help:
 	@echo "Available targets:"
