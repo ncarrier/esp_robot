@@ -22,226 +22,146 @@
 #include <ESP8266mDNS.h>
 #include <WebSocketsServer.h>
 
-Servo servo;
+static Servo servo;
 
-const char* ssid = "esp_robot";
-const char* password = "esp_robot";
+static const char *kSsid = "esp_robot";
+static const char *kPassword = "esp_robot";
 
-ESP8266WebServer server(80);
-WebSocketsServer webSocket(81);
-const char* mdnsName = "esp_robot";
+static ESP8266WebServer server(80);
+static WebSocketsServer web_socket(81);
+static const char *mdns_name = kSsid;
+// static const int kHeadPin = D0;
+// static const int kLeftWheelPin = D1;
+// static const int kRightWheelPin = D2;
+static const int kLeftEyePin = D3;
+static const int kRightEyePin = D4;
+static int leftEyeValue = 0;
+static int rightEyeValue = 0;
+static int leftEyeIncrement = 10;
+static int rightEyeIncrement = 10;
 
-void startMDNS() { // Start the mDNS responder
-  MDNS.begin(mdnsName);                        // start the multicast domain name server
-  Serial.print("mDNS responder started: http://");
-  Serial.print(mdnsName);
-  Serial.println(".local");
+static void startMdns() {
+  MDNS.begin(mdns_name);
+  Serial.printf("mDNS responder started: http://%s.local\n", mdns_name);
 }
 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) { // When a WebSocket message is received
+static void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
+                    size_t lenght) {
   switch (type) {
-    case WStype_DISCONNECTED:             // if the websocket is disconnected
+    case WStype_DISCONNECTED:
       Serial.printf("[%u] Disconnected!\n", num);
       break;
-    case WStype_CONNECTED: {              // if a new websocket connection is established
-        IPAddress ip = webSocket.remoteIP(num);
-        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-//        rainbow = false;                  // Turn rainbow off when a new connection is established
-      }
+
+    case WStype_CONNECTED: {
+      IPAddress ip = web_socket.remoteIP(num);
+      Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0],
+                    ip[1], ip[2], ip[3], payload);
+    }
       break;
-    case WStype_TEXT:                     // if new text data is received
+
+    case WStype_TEXT:
       Serial.printf("[%u] get Text: %s\n", num, payload);
-//      if (payload[0] == '#') {            // we get RGB data
-//        uint32_t rgb = (uint32_t) strtol((const char *) &payload[1], NULL, 16);   // decode rgb data
-//        int r = ((rgb >> 20) & 0x3FF);                     // 10 bits per color, so R: bits 20-29
-//        int g = ((rgb >> 10) & 0x3FF);                     // G: bits 10-19
-//        int b =          rgb & 0x3FF;                      // B: bits  0-9
-//
-//        analogWrite(LED_RED,   r);                         // write it to the LED output pins
-//        analogWrite(LED_GREEN, g);
-//        analogWrite(LED_BLUE,  b);
-//      } else if (payload[0] == 'R') {                      // the browser sends an R when the rainbow effect is enabled
-//        rainbow = true;
-//      } else if (payload[0] == 'N') {                      // the browser sends an N when the rainbow effect is disabled
-//        rainbow = false;
-//      }
       break;
+
     default:
       Serial.printf("unhandled websocket event type %d\n", type);
   }
 }
 
-void startWebSocket() { // Start a WebSocket server
-  webSocket.begin();                          // start the websocket server
-  webSocket.onEvent(webSocketEvent);          // if there's an incomming websocket message, go to function 'webSocketEvent'
+static void startWebSocket() {
+  web_socket.begin();
+  web_socket.onEvent(webSocketEvent);
   Serial.println("WebSocket server started.");
 }
 
-String getContentType(String filename){
-  if(filename.endsWith(".html")) return "text/html";
-  else if(filename.endsWith(".css")) return "text/css";
-  else if(filename.endsWith(".js")) return "application/javascript";
-  else if(filename.endsWith(".ico")) return "image/x-icon";
-  else if(filename.endsWith(".gz")) return "application/x-gzip";
+static String getContentType(String file_name) {
+  if (file_name.endsWith(".html"))
+    return "text/html";
+  else if (file_name.endsWith(".css"))
+    return "text/css";
+  else if (file_name.endsWith(".js"))
+    return "application/javascript";
+  else if (file_name.endsWith(".ico"))
+    return "image/x-icon";
+  else if (file_name.endsWith(".gz"))
+    return "application/x-gzip";
   return "text/plain";
 }
 
-bool handleFileRead(String path)
-{
-	Serial.println("handleFileRead: " + path);
-	if (path.endsWith("/"))
-		path += "index.html";
-	String pathWithGz = path + ".gz";
-	bool with_gz = SPIFFS.exists(pathWithGz);
-	if (with_gz || SPIFFS.exists(path))
-		if (with_gz)
-			path = pathWithGz;
-	if (SPIFFS.exists(path)) {
-		File file = SPIFFS.open(path, "r");
-		server.streamFile(file, "text/html");
-		file.close();
-		return true;
-	}
-	Serial.println("\tFile Not Found");
-	return false;
+static bool handleFileRead(String path) {
+  Serial.printf("handleFileRead: %s\n", path.c_str());
+  if (path.endsWith("/"))
+    path += "index.html";
+  String pathWithGz = path + ".gz";
+  bool with_gz = SPIFFS.exists(pathWithGz);
+  if (with_gz || SPIFFS.exists(path))
+    if (with_gz)
+      path = pathWithGz;
+  if (SPIFFS.exists(path)) {
+    File file = SPIFFS.open(path, "r");
+    server.streamFile(file, getContentType(path));
+    file.close();
+    return true;
+  }
+  Serial.println("\tFile Not Found");
+
+  return false;
 }
 
 void setup() {
   Serial.println(WL_CONNECTED);
   servo.attach(D0, 610, 2470);
-  pinMode(D1, OUTPUT);
-  pinMode(D2, OUTPUT);
-  pinMode(D3, OUTPUT);
-  analogWrite(D1, 0); // R
-  analogWrite(D2, 0); // B
-  analogWrite(D3, 255); // V
+  pinMode(kLeftEyePin, OUTPUT);
+  pinMode(kRightEyePin, OUTPUT);
   Serial.begin(115200);
-  WiFi.softAP(ssid, password); //begin WiFi access point
+  WiFi.softAP(kSsid, kPassword);
   SPIFFS.begin();
-  startMDNS();
+  startMdns();
   startWebSocket();
-  Serial.println("");
-
-  // Wait for connection
-//  while (WiFi.status() != WL_CONNECTED) {
-//    delay(500);
-//    Serial.print(WiFi.status());
-//  }
-  Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
+  Serial.printf("Connected to %s \n", kSsid);
+  Serial.printf("IP address: ");
   Serial.println(WiFi.softAPIP());
-  server.onNotFound([]() {                              // If the client requests any URI
-    if (!handleFileRead(server.uri()))                  // send it if it exists
-      server.send(404, "text/plain", "404: Not Found"); // otherwise, respond with a 404 (Not Found) error
-  });
+  server.onNotFound([]() {
+        if (!handleFileRead(server.uri()))
+          server.send(404, "text/plain", "404: Not Found");
+      });
   server.begin();
   Serial.println("Web server started!");
 }
 
-int sensorValue;
-int outputValue;
-
-struct rgb {
-    double r;       // a fraction between 0 and 1
-    double g;       // a fraction between 0 and 1
-    double b;       // a fraction between 0 and 1
-};
-
-struct hsv {
-    double h;       // angle in degrees
-    double s;       // a fraction between 0 and 1
-    double v;       // a fraction between 0 and 1
-};
-
-struct rgb hsv2rgb(struct hsv in)
-{
-    double      hh, p, q, t, ff;
-    long        i;
-    rgb         out;
-
-    if(in.s <= 0.0) {       // < is bogus, just shuts up warnings
-        out.r = in.v;
-        out.g = in.v;
-        out.b = in.v;
-        return out;
-    }
-    hh = in.h;
-    if(hh >= 360.0) hh = 0.0;
-    hh /= 60.0;
-    i = (long)hh;
-    ff = hh - i;
-    p = in.v * (1.0 - in.s);
-    q = in.v * (1.0 - (in.s * ff));
-    t = in.v * (1.0 - (in.s * (1.0 - ff)));
-
-    switch(i) {
-    case 0:
-        out.r = in.v;
-        out.g = t;
-        out.b = p;
-        break;
-    case 1:
-        out.r = q;
-        out.g = in.v;
-        out.b = p;
-        break;
-    case 2:
-        out.r = p;
-        out.g = in.v;
-        out.b = t;
-        break;
-
-    case 3:
-        out.r = p;
-        out.g = q;
-        out.b = in.v;
-        break;
-    case 4:
-        out.r = t;
-        out.g = p;
-        out.b = in.v;
-        break;
-    case 5:
-    default:
-        out.r = in.v;
-        out.g = p;
-        out.b = q;
-        break;
-    }
-    out.r *= 255.;
-    out.g *= 255.;
-    out.b *= 255.;
-    
-    return out;     
+static void updateEyes() {
+  leftEyeValue += leftEyeIncrement;
+  rightEyeValue += rightEyeIncrement;
+  if (leftEyeValue >= 255 || leftEyeValue <= 0) {
+    leftEyeValue = leftEyeValue <= 0 ? 0 : 255;
+    leftEyeIncrement *= -1;
+  }
+  if (rightEyeValue >= 255 || rightEyeValue <= 0) {
+    rightEyeValue = rightEyeValue <= 0 ? 0 : 255;
+    rightEyeIncrement *= -1;
+  }
+  analogWrite(kLeftEyePin, leftEyeValue);
+  analogWrite(kRightEyePin, rightEyeValue);
+//  Serial.printf("right eye: %d, left eye: %d\n", leftEyeValue, rightEyeValue);
 }
 
-struct hsv hsv = {
-  .h = 0.,
-  .s = 1.,
-  .v = 1.,
-};
-
-struct rgb rgb;
-
 void loop() {
+  unsigned long current_time = millis(); // NOLINT
+  static unsigned long previous_time = current_time; // NOLINT
+  unsigned long elapsed = current_time - previous_time; // NOLINT
+  int64_t sleep_duration = 42 - elapsed;
+  Serial.printf("current_time %lums\n", current_time);
+  Serial.printf("previous_time %lums\n", previous_time);
+  Serial.printf("elapsed %lums\n", elapsed);
+  Serial.printf("sleep_duration %" PRIi64 "ms\n", sleep_duration);
+  if (sleep_duration > 0) {
+    delay(sleep_duration);
+    Serial.printf("sleep %" PRIi64 "ms\n", sleep_duration);
+  }
+  previous_time = current_time;
+
   server.handleClient();
   MDNS.update();
-//  delay(10);
-//  sensorValue = analogRead(A0);
-//  Serial.print("sensor = ");
-//  Serial.println(sensorValue);
-//  outputValue = map(sensorValue, 0, 1024, 0, 359);
-//  Serial.print("output = ");
-//  Serial.println(outputValue);
-//  hsv.h = outputValue;
-//  rgb = hsv2rgb(hsv);
-//  analogWrite(D1, rgb.r); // R
-//  analogWrite(D2, rgb.b); // B
-//  analogWrite(D3, rgb.g); // V
+  updateEyes();
 //  servo.write(0);
-//  delay(1000);
-//  servo.write(180);
-//  delay(1000);
 }
