@@ -26,19 +26,21 @@ static Servo servo;
 
 static const char *kSsid = "esp_robot";
 static const char *kPassword = "esp_robot";
-
-static ESP8266WebServer server(80);
-static WebSocketsServer web_socket(81);
 static const char *mdns_name = kSsid;
 // static const int kHeadPin = D0;
 // static const int kLeftWheelPin = D1;
 // static const int kRightWheelPin = D2;
 static const int kLeftEyePin = D3;
 static const int kRightEyePin = D4;
+static const int kRefreshPeriod = 42;
+
 static int leftEyeValue = 0;
 static int rightEyeValue = 0;
 static int leftEyeIncrement = 10;
 static int rightEyeIncrement = 10;
+
+static ESP8266WebServer server(80);
+static WebSocketsServer web_socket(81);
 
 static void startMdns() {
   MDNS.begin(mdns_name);
@@ -142,22 +144,15 @@ static void updateEyes() {
   }
   analogWrite(kLeftEyePin, leftEyeValue);
   analogWrite(kRightEyePin, rightEyeValue);
-//  Serial.printf("right eye: %d, left eye: %d\n", leftEyeValue, rightEyeValue);
 }
 
 void loop() {
   unsigned long current_time = millis(); // NOLINT
   static unsigned long previous_time = current_time; // NOLINT
   unsigned long elapsed = current_time - previous_time; // NOLINT
-  int64_t sleep_duration = 42 - elapsed;
-  Serial.printf("current_time %lums\n", current_time);
-  Serial.printf("previous_time %lums\n", previous_time);
-  Serial.printf("elapsed %lums\n", elapsed);
-  Serial.printf("sleep_duration %" PRIi64 "ms\n", sleep_duration);
-  if (sleep_duration > 0) {
+  int64_t sleep_duration = kRefreshPeriod - (int64_t)elapsed;
+  if (sleep_duration > 0)
     delay(sleep_duration);
-    Serial.printf("sleep %" PRIi64 "ms\n", sleep_duration);
-  }
   previous_time = current_time;
 
   server.handleClient();
