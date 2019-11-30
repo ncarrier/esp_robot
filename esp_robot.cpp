@@ -14,6 +14,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <inttypes.h>
 #include <Servo.h>
 #include <ESP8266WiFi.h>
@@ -27,9 +28,9 @@ static Servo servo;
 static const char *kSsid = "esp_robot";
 static const char *kPassword = "esp_robot";
 static const char *mdns_name = kSsid;
-// static const int kHeadPin = D0;
-// static const int kLeftWheelPin = D1;
-// static const int kRightWheelPin = D2;
+static const int kHeadPin = D0;
+static const int kLeftWheelPin = D1;
+static const int kRightWheelPin = D2;
 static const int kLeftEyePin = D3;
 static const int kRightEyePin = D4;
 static const int kRefreshPeriod = 42;
@@ -39,6 +40,9 @@ static int rightEyeValue = 0;
 static int leftEyeIncrement = 10;
 static int rightEyeIncrement = 10;
 
+Servo servo_head;
+Servo servo_right_wheel;
+Servo servo_left_wheel;
 static ESP8266WebServer server(80);
 static WebSocketsServer web_socket(81);
 
@@ -49,6 +53,8 @@ static void startMdns() {
 
 static void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
                            size_t lenght) {
+  StaticJsonDocument<500> json;
+
   switch (type) {
     case WStype_DISCONNECTED:
       Serial.printf("[%u] Disconnected!\n", num);
@@ -58,12 +64,30 @@ static void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
       IPAddress ip = web_socket.remoteIP(num);
       Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0],
                     ip[1], ip[2], ip[3], payload);
+      break;
     }
-      break;
 
-    case WStype_TEXT:
+    case WStype_TEXT: {
       Serial.printf("[%u] get Text: %s\n", num, payload);
+      DeserializationError err = deserializeJson(json, payload);
+      if (err != DeserializationError::Ok) {
+        Serial.printf("Parsing json %s failed\n", payload);
+        return;
+      }
+      int left_wheel_setpoint = json["left_wheel"] | -1;
+      int right_wheel_setpoint = json["right_wheel"] | -1;
+      int head_setpoint = json["head"] | -1;
+      if (left_wheel_setpoint != -1)
+        // XXX put in range
+        servo_left_wheel.write(left_wheel_setpoint);
+      if (right_wheel_setpoint != -1)
+        // XXX put in range
+        servo_right_wheel.write(right_wheel_setpoint);
+      if (head_setpoint != -1)
+        // XXX put in range
+        servo_head.write(head_setpoint);
       break;
+    }
 
     case WStype_PONG:
       Serial.printf("[%u] Received a ping\n", num);
@@ -116,10 +140,18 @@ static bool handleFileRead(String path) {
 
 void setup() {
   Serial.println(WL_CONNECTED);
-  servo.attach(D0, 610, 2470);
   pinMode(kLeftEyePin, OUTPUT);
   pinMode(kRightEyePin, OUTPUT);
   Serial.begin(115200);
+
+  servo_head.attach(kHeadPin, 610, 2470);
+  servo_left_wheel.attach(kLeftWheelPin);
+  servo_right_wheel.attach(kRightWheelPin);
+
+  servo_head.write(0);
+  servo_left_wheel.write(90);
+  servo_right_wheel.write(90);
+
   WiFi.softAP(kSsid, kPassword);
   SPIFFS.begin();
   startMdns();
@@ -162,5 +194,4 @@ void loop() {
   MDNS.update();
   updateEyes();
   web_socket.loop();
-//  servo.write(0);
 }
