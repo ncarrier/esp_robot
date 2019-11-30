@@ -122,6 +122,7 @@ static bool handleFileRead(String path) {
   Serial.printf("handleFileRead: %s\n", path.c_str());
   if (path.endsWith("/"))
     path += "index.html";
+  String content_type = getContentType(path);
   String pathWithGz = path + ".gz";
   bool with_gz = SPIFFS.exists(pathWithGz);
   if (with_gz || SPIFFS.exists(path))
@@ -129,7 +130,7 @@ static bool handleFileRead(String path) {
       path = pathWithGz;
   if (SPIFFS.exists(path)) {
     File file = SPIFFS.open(path, "r");
-    server.streamFile(file, getContentType(path));
+    server.streamFile(file, content_type);
     file.close();
     return true;
   }
