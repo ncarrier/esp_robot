@@ -1,0 +1,12 @@
+body {
+	background-color: #f6f6ff;
+}
+
+.key {
+	border-radius: 20%;
+	text-align: center;
+	border: solid;
+	font-size: 400%;
+	width:22%;
+	padding: 2%;
+}

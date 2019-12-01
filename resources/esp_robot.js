@@ -7,6 +7,8 @@ var head_setpoint = 90;
 var left_eye_increment = 5;
 var right_eye_increment = 5;
 
+var keys = {};
+
 function ws_onerror(error) {
 	document.getElementById("banner").innerHTML = `[error] ${error.message}`;
 	init_ws();
@@ -14,7 +16,7 @@ function ws_onerror(error) {
 
 function ws_onopen(e) {
 	document.getElementById("banner").innerHTML = "Connected";
-	/* reset all, in particular,  resynchronize the eyes */
+	/* reset all, in particular,  re-synchronize the eyes */
 	left_eye_increment = 0;
 	right_eye_increment = 0;
 	left_wheel_setpoint = servo_disabled;
@@ -41,15 +43,14 @@ function send_message(e) {
 		left_eye: left_eye_increment,
 		right_eye: right_eye_increment,
 	};
-	ws.send(JSON.stringify(msg));
-}
-
-document.onkeypress = function(e) {
-	console.log('Frappe de la touche de code ' + e.which);
 	if (!(ws.readyState === WebSocket.OPEN)) {
 		document.getElementById("banner").innerHTML = "Can't speak to robot";
 		return;
 	}
+	ws.send(JSON.stringify(msg));
+}
+
+document.onkeypress = function(e) {
 	if (e.which == 101) { // e
 		left_wheel_setpoint = left_wheel_setpoint + 1;
 		send_message();
@@ -83,10 +84,97 @@ document.onkeypress = function(e) {
 	}
 }
 
+function updateMovement() {
+	left_wheel_setpoint = -1;
+	right_wheel_setpoint = -1;
+	head_setpoint = 90;
+	if (keys["ArrowUp"]) {
+		if (keys["ArrowRight"]) {
+			if (keys["ArrowLeft"]) {
+				if (keys["ArrowDown"]) {
+				} else {
+				}
+			} else {
+				if (keys["ArrowDown"]) {
+				} else {
+					left_wheel_setpoint = 180;
+					right_wheel_setpoint = 85;
+				}
+			}
+		} else {
+			if (keys["ArrowLeft"]) {
+				if (keys["ArrowDown"]) {
+				} else {
+					left_wheel_setpoint = 110;
+					right_wheel_setpoint = 0;
+				}
+			} else {
+				if (keys["ArrowDown"]) {
+				} else {
+					left_wheel_setpoint = 180;
+					right_wheel_setpoint = 0;
+				}
+			}
+		}
+	} else {
+		if (keys["ArrowRight"]) {
+			if (keys["ArrowLeft"]) {
+				if (keys["ArrowDown"]) {
+				} else {
+				}
+			} else {
+				if (keys["ArrowDown"]) {
+					left_wheel_setpoint = 0;
+					right_wheel_setpoint = 110;
+				} else {
+					left_wheel_setpoint = 180;
+					right_wheel_setpoint = 180;
+				}
+			}
+		} else {
+			if (keys["ArrowLeft"]) {
+				if (keys["ArrowDown"]) {
+					left_wheel_setpoint = 80;
+					right_wheel_setpoint = 180;
+				} else {
+					left_wheel_setpoint = 0;
+					right_wheel_setpoint = 0;
+				}
+			} else {
+				if (keys["ArrowDown"]) {
+					left_wheel_setpoint = 0;
+					right_wheel_setpoint = 180;
+				} else {
+				}
+			}
+		}
+	}
+	send_message();
+}
+
+function updateHead() {
+	if (keys["PageUp"]) {
+		if (!keys["PageDown"])
+			head_setpoint = 180;
+	}
+	if (!keys["PageUp"]) {
+		if (keys["PageDown"])
+			head_setpoint = 0;
+	}
+	send_message();
+}
+
 document.onkeydown = function(e) {
-	document.getElementById("key").innerHTML = e.key;
-	document.getElementById("code").innerHTML = e.code;
-	console.log("onkeydown");
+	element = document.getElementById(e.code);
+	if (element) {
+		e.preventDefault();
+		if (keys[e.code])
+			return;
+		keys[e.code] = true;
+		element.style.backgroundColor = "#cbcbf1";
+		updateMovement();
+		updateHead();
+	}
 }
 
 /*
@@ -110,11 +198,14 @@ document.onkeydown = function(e) {
  */
 
 document.onkeyup = function(e) {
-	if (document.getElementById("key").innerHTML == e.key)
-		document.getElementById("key").innerHTML = "";
-	if (document.getElementById("code").innerHTML == e.code)
-		document.getElementById("code").innerHTML = "";
-	console.log("onkeyup");
+	element = document.getElementById(e.code);
+	if (element) {
+		e.preventDefault();
+		keys[e.code] = false;
+		element.style.backgroundColor = "#f6f6ff";
+		updateMovement();
+		updateHead();
+	}
 }
 
 init_ws();

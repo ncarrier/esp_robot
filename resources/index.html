@@ -3,10 +3,38 @@
   <head>
     <meta charset="utf-8"/>
     <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="style.css">
     <title>ESP robot</title>
   </head>
   <body>
+    <table id="keys">
+      <tbody>
+        <tr><td id="PageUp" class="key">⇞</td>
+          <td id="ArrowUp" class="key">↑</td>
+          <td id="PageDown" class="key">⇟</td>
+          </tr>
+        <tr>
+          <td id="ArrowLeft" class="key">←</td>
+          <td id="ArrowDown" class="key">↓</td>
+          <td id="ArrowRight" class="key">→</td>
+        </tr>
+      </tbody>
+    </table>
     <p id="banner">Hello world!</p>
+    <table>
+      <tbody>
+        <tr><td><strong>e</strong></td><td>left  wheel</td><td>++</td></tr>
+        <tr><td><strong>j</strong></td><td>left  wheel</td><td>--</td></tr>
+        <tr><td><strong>u</strong></td><td>right wheel</td><td>++</td></tr>
+        <tr><td><strong>k</strong></td><td>right wheel</td><td>--</td></tr>
+        <tr><td><strong>i</strong></td><td>head  wheel</td><td>++</td></tr>
+        <tr><td><strong>x</strong></td><td>head  wheel</td><td>--</td></tr>
+        <tr><td><strong>a</strong></td><td>left  eye</td><td>++</td></tr>
+        <tr><td><strong>;</strong></td><td>left  eye</td><td>--</td></tr>
+        <tr><td><strong>o</strong></td><td>right eye</td><td>++</td></tr>
+        <tr><td><strong>q</strong></td><td>right eye</td><td>--</td></tr>
+      </tbody>
+    </table>
     <script src="esp_robot.js"></script>
   </body>
 </html>
