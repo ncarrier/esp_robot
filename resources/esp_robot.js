@@ -1,4 +1,4 @@
-var ws = new WebSocket("ws://esp_robot.local:81");
+var ws;
 
 var servo_disabled = -1;
 var left_wheel_setpoint = servo_disabled;
@@ -7,20 +7,31 @@ var head_setpoint = 90;
 var left_eye_increment = 5;
 var right_eye_increment = 5;
 
-ws.onerror = function(error) {
-	alert(`[error] ${error.message}`);
+ws_onerror = function(error) {
+	document.getElementById("banner").innerHTML = `[error] ${error.message}`;
+	init_ws();
 };
-ws.onopen = function(e) {
-	console.log("open");
-	/* resynchronize the eyes */
+
+ws_onopen = function(e) {
+	document.getElementById("banner").innerHTML = "Connected";
+	/* reset all, in particular,  resynchronize the eyes */
 	left_eye_increment = 0;
 	right_eye_increment = 0;
+	left_wheel_setpoint = servo_disabled;
+	right_wheel_setpoint = servo_disabled;
+	head_setpoint = 90;
 	send_message();
 
 	left_eye_increment = 5;
 	right_eye_increment = 5;
 	send_message();
 };
+
+init_ws = function() {
+	ws = new WebSocket("ws://esp_robot.local:81");
+	ws.onerror = ws_onerror;
+	ws.onopen = ws_onopen;
+}
 
 send_message = function(e) {
 	var msg = {
@@ -35,6 +46,10 @@ send_message = function(e) {
 
 document.onkeypress = function(e) {
 	console.log('Frappe de la touche de code ' + e.which);
+	if (!(ws.readyState === WebSocket.OPEN)) {
+		document.getElementById("banner").innerHTML = "Can't speak to robot";
+		return;
+	}
 	if (e.which == 101) { // e
 		left_wheel_setpoint = left_wheel_setpoint + 1;
 		send_message();
@@ -67,3 +82,5 @@ document.onkeypress = function(e) {
 		send_message();
 	}
 }
+
+init_ws();
