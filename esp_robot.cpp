@@ -35,10 +35,12 @@ static const int kLeftEyePin = D3;
 static const int kRightEyePin = D4;
 static const int kRefreshPeriod = 42;
 
+static int headServoNeutral = 90;
+
 static int leftEyeValue = 0;
 static int rightEyeValue = 0;
-static int leftEyeIncrement = 10;
-static int rightEyeIncrement = 10;
+static int leftEyeIncrement = 5;
+static int rightEyeIncrement = 5;
 
 Servo servo_head;
 Servo servo_right_wheel;
@@ -77,15 +79,42 @@ static void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
       int left_wheel_setpoint = json["left_wheel"] | -1;
       int right_wheel_setpoint = json["right_wheel"] | -1;
       int head_setpoint = json["head"] | -1;
-      if (left_wheel_setpoint != -1)
-        // XXX put in range
+      int left_eye = json["left_eye"] | leftEyeIncrement;
+      int right_eye = json["right_eye"] | rightEyeIncrement;
+      if ((left_wheel_setpoint < 0 || left_wheel_setpoint > 180)) {
+          if (servo_left_wheel.attached())
+            servo_left_wheel.detach();
+      } else {
+        if (!servo_left_wheel.attached())
+          servo_left_wheel.attach(kLeftWheelPin);
         servo_left_wheel.write(left_wheel_setpoint);
-      if (right_wheel_setpoint != -1)
-        // XXX put in range
+      }
+      if ((right_wheel_setpoint < 0 || right_wheel_setpoint > 180)) {
+          if (servo_right_wheel.attached())
+            servo_right_wheel.detach();
+      } else {
+        if (!servo_right_wheel.attached())
+          servo_right_wheel.attach(kRightWheelPin);
         servo_right_wheel.write(right_wheel_setpoint);
-      if (head_setpoint != -1)
-        // XXX put in range
+      }
+      if ((head_setpoint < 0 || head_setpoint > 180)) {
+          if (servo_head.attached())
+            servo_head.detach();
+      } else {
+        if (!servo_head.attached())
+          servo_head.attach(kHeadPin);
         servo_head.write(head_setpoint);
+      }
+      if (left_eye >= 100)
+        left_eye = 100;
+      if (left_eye < 0)
+        left_eye = 0;
+      leftEyeIncrement = left_eye;
+      if (right_eye >= 100)
+        right_eye = 100;
+      if (right_eye < 0)
+        right_eye = 0;
+      rightEyeIncrement = right_eye;
       break;
     }
 
@@ -145,13 +174,7 @@ void setup() {
   pinMode(kRightEyePin, OUTPUT);
   Serial.begin(115200);
 
-  servo_head.attach(kHeadPin, 610, 2470);
-  servo_left_wheel.attach(kLeftWheelPin);
-  servo_right_wheel.attach(kRightWheelPin);
-
-  servo_head.write(0);
-  servo_left_wheel.write(90);
-  servo_right_wheel.write(90);
+  servo_head.write(headServoNeutral);
 
   WiFi.softAP(kSsid, kPassword);
   SPIFFS.begin();
@@ -168,16 +191,25 @@ void setup() {
 }
 
 static void updateEyes() {
-  leftEyeValue += leftEyeIncrement;
-  rightEyeValue += rightEyeIncrement;
-  if (leftEyeValue >= 255 || leftEyeValue <= 0) {
-    leftEyeValue = leftEyeValue <= 0 ? 0 : 255;
-    leftEyeIncrement *= -1;
+  if (leftEyeIncrement == 0) {
+    leftEyeValue = 255;
+  } else {
+    leftEyeValue += leftEyeIncrement;
+    if (leftEyeValue >= 255 || leftEyeValue <= 0) {
+      leftEyeValue = leftEyeValue <= 0 ? 0 : 255;
+      leftEyeIncrement *= -1;
+    }
   }
-  if (rightEyeValue >= 255 || rightEyeValue <= 0) {
-    rightEyeValue = rightEyeValue <= 0 ? 0 : 255;
-    rightEyeIncrement *= -1;
+  if (rightEyeIncrement == 0) {
+    rightEyeValue = 255;
+  } else {
+    rightEyeValue += rightEyeIncrement;
+    if (rightEyeValue >= 255 || rightEyeValue <= 0) {
+      rightEyeValue = rightEyeValue <= 0 ? 0 : 255;
+      rightEyeIncrement *= -1;
+    }
   }
+
   analogWrite(kLeftEyePin, leftEyeValue);
   analogWrite(kRightEyePin, rightEyeValue);
 }
