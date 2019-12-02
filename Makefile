@@ -50,7 +50,11 @@ $(compressed_resources): %.gz: %
 
 spiffs:	$(compressed_resources)
 	@echo "Create spiffs image"
-	$(Q) $(tools)mkspiffs/mkspiffs --debug 0 --create $(resources_dir) $@
+	$(Q) $(tools)mkspiffs/mkspiffs --debug 0 \
+		--block 8192 \
+		--page 256 \
+		--size $$((1024 * 1024)) \
+		--create $(resources_dir) $@
 
 esp_robot: esp_robot.elf
 	@echo Generating final payload $@
