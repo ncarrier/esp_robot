@@ -178,6 +178,15 @@ void setup() {
 
   WiFi.softAP(kSsid, kPassword);
   SPIFFS.begin();
+  Serial.printf("file system content:\n");
+  Dir dir = SPIFFS.openDir("/");
+  while (dir.next()) {
+      Serial.print(dir.fileName());
+      if (dir.fileSize()) {
+          File f = dir.openFile("r");
+          Serial.printf(" %zu\n", f.size());
+      }
+  }
   startMdns();
   startWebSocket();
   Serial.printf("Started Access Point %s \n", kSsid);
