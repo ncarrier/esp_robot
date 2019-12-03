@@ -7,7 +7,14 @@ var head_setpoint = 90;
 var left_eye_increment = 5;
 var right_eye_increment = 5;
 
-var keys = {};
+var keys = {
+	PageUp: false,
+	ArrowUp: false,
+	PageDown: false,
+	ArrowLeft: false,
+	ArrowDown: false,
+	ArrowRight: false,
+};
 
 function ws_onerror(error) {
 	document.getElementById("banner").innerHTML = `[error] ${error.message}`;
@@ -164,18 +171,23 @@ function updateHead() {
 	send_message();
 }
 
-document.onkeydown = function(e) {
-	element = document.getElementById(e.code);
+function on_control_down(e) {
+	/* e.code if keyboard event, e.currentTarget.id if mouse event */
+	element_name = e.code ? e.code : e.currentTarget.id;
+	document.getElementById("banner").innerHTML = element_name;
+
+	element = document.getElementById(element_name);
 	if (element) {
 		e.preventDefault();
-		if (keys[e.code])
+		if (keys[element_name])
 			return;
-		keys[e.code] = true;
+		keys[element_name] = true;
 		element.style.backgroundColor = "#cbcbf1";
 		updateMovement();
 		updateHead();
 	}
 }
+document.onkeydown = on_control_down;
 
 /*
  * up right left down  left wheel  right wheel
@@ -197,15 +209,24 @@ document.onkeydown = function(e) {
  * 1  1     1    1     XX          XX
  */
 
-document.onkeyup = function(e) {
-	element = document.getElementById(e.code);
+function on_control_up(e) {
+	element_name = e.code ? e.code : e.currentTarget.id;
+
+	element = document.getElementById(element_name);
 	if (element) {
 		e.preventDefault();
-		keys[e.code] = false;
+		keys[element_name] = false;
 		element.style.backgroundColor = "#f6f6ff";
 		updateMovement();
 		updateHead();
 	}
+}
+document.onkeyup = on_control_up;
+
+for (var key in keys) {
+	element = document.getElementById(key)
+	element.onmousedown = on_control_down;
+	element.onmouseup = on_control_up;
 }
 
 init_ws();
