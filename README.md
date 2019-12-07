@@ -2,9 +2,15 @@
 
 ## fetch the code and tools
 
+    pip3 install cpplint
     git clone --recurse-submodules https://github.com/ncarrier/esp_robot
+    cd esp_robot
     cd submodules/Arduino/tools/
     ./get.py
+    cd -
+
+For cpplint to work, it may be required to add ~/.local/bin to your PATH
+environment variable.
 
 ## build
 
