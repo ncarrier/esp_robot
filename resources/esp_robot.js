@@ -37,7 +37,7 @@ function ws_onopen(e) {
 };
 
 function init_ws() {
-	ws = new WebSocket("ws://esp_robot.local:81");
+	ws = new WebSocket("ws://192.168.4.1:81");
 	ws.onerror = ws_onerror;
 	ws.onopen = ws_onopen;
 }
