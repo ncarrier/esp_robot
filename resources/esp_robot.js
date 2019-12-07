@@ -227,6 +227,16 @@ for (var key in keys) {
 	element = document.getElementById(key)
 	element.onmousedown = on_control_down;
 	element.onmouseup = on_control_up;
+	element.oncontextmenu = on_control_down;
+	element.ontouchstart = on_control_down;
+	element.ontouchend = on_control_up;
 }
 
 init_ws();
+
+window.oncontextmenu = function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
+};
+
