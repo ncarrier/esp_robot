@@ -224,13 +224,43 @@ function on_control_up(e) {
 document.onkeyup = on_control_up;
 
 for (var key in keys) {
-	element = document.getElementById(key)
+	var element = document.getElementById(key)
 	element.onmousedown = on_control_down;
 	element.onmouseup = on_control_up;
 	element.oncontextmenu = on_control_down;
 	element.ontouchstart = on_control_down;
 	element.ontouchend = on_control_up;
 }
+
+function on_accelerometer_down(e) {
+	/* e.code if keyboard event, e.currentTarget.id if mouse event */
+	element_name = e.code ? e.code : e.currentTarget.id;
+
+	element = document.getElementById(element_name);
+	if (element) {
+		e.preventDefault();
+		element.style.backgroundColor = "#cbcbf1";
+		window.ondevicemotion = on_device_motion;
+	}
+}
+
+function on_accelerometer_up(e) {
+	element_name = e.code ? e.code : e.currentTarget.id;
+
+	element = document.getElementById(element_name);
+	if (element) {
+		e.preventDefault();
+		element.style.backgroundColor = "#f6f6ff";
+		window.ondevicemotion = undefined;
+	}
+}
+
+var element = document.getElementById("accelerometer")
+element.onmousedown = on_accelerometer_down;
+element.onmouseup = on_accelerometer_up;
+element.oncontextmenu = on_accelerometer_down;
+element.ontouchstart = on_accelerometer_down;
+element.ontouchend = on_accelerometer_up;
 
 init_ws();
 
@@ -239,4 +269,71 @@ window.oncontextmenu = function(event) {
     event.stopPropagation();
     return false;
 };
+
+var gravity = [0, 0, 0];
+var gravity_element = document.getElementById('gravity')
+
+function compute_gravity_vector(x, y, z) {
+	var alpha = 0.8;
+	var norm;
+	var x;
+	var y;
+	var z;
+	var ts;
+
+	/* lowpass filter the gravity vector to filter sudden movements */
+	gravity[0] = alpha * gravity[0] + (1 - alpha) * x;
+	gravity[1] = alpha * gravity[1] + (1 - alpha) * y;
+	gravity[2] = alpha * gravity[2] + (1 - alpha) * z;
+
+	/* normalize the gravity vector */
+	norm = Math.sqrt(Math.pow(gravity[0], 2) + Math.pow(gravity[1], 2) +
+		Math.pow(gravity[2], 2));
+	x = gravity[0] / norm;
+	y = gravity[1] / norm;
+	z = gravity[2] / norm;
+}
+
+function on_device_motion(event) {
+	var a = event.accelerationIncludingGravity;
+	var intensity;
+
+	compute_gravity_vector(a.x, a.y, a.z);
+
+	if (gravity[1] > -1 && gravity[1] < 1) {
+		if (gravity[0] > 4.8 && gravity[0] < 6.8) {
+			/* common neutral zone, no movement */
+			left_wheel_setpoint = 0;
+			right_wheel_setpoint = 0;
+			console.log("common neutral zone");
+		} else if (gravity[0] > 6.8) {
+			/* neutral zone for y, speed proportional to distance to center */
+			intensity = (gravity[0] - 6.8) / (9.8 - 6.8);
+			left_wheel_setpoint = intensity * 90 + 90;
+			right_wheel_setpoint = 180 - left_wheel_setpoint;
+			console.log("y neutral zone");
+		}
+	}
+
+	gravity_element.innerHTML =
+		"x = " + Number.parseFloat(gravity[0]).toFixed(2) +
+		", y = " + Number.parseFloat(gravity[1]).toFixed(2) +
+		", z = " + Number.parseFloat(gravity[2]).toFixed(2);
+
+	send_message();
+};
+
+if (!window.DeviceOrientationEvent)
+	gravity_element.innerHTML = "DeviceOrientation isn't supported";
+
+function accelerometer_on_click(e) {
+	if (window.fullScreen)
+		document.exitFullscreen();
+	else
+		document.documentElement.requestFullscreen();
+	window.screen.mozLockOrientation("landscape");
+}
+
+var accelerometer = document.getElementById("fullscreen");
+accelerometer.ontouchstart = accelerometer_on_click;
 

@@ -11,3 +11,22 @@ body {
 	width:22%;
 	padding: 2%;
 }
+
+#accelerometer {
+	border-radius: 20%;
+	text-align: center;
+	border: solid;
+	width: 300px;
+	height: 300px;
+	vertical-align: middle;
+	line-height: 300px;
+}
+#fullscreen {
+	border-radius: 20%;
+	text-align: center;
+	border: solid;
+	width: 200px;
+	height: 100px;
+	vertical-align: middle;
+	line-height: 100px;
+}
