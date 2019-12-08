@@ -1,11 +1,36 @@
+//"use strict";
+
 var ws;
 
 var servo_disabled = -1;
+
 var left_wheel_setpoint = servo_disabled;
 var right_wheel_setpoint = servo_disabled;
 var head_setpoint = 90;
 var left_eye_increment = 5;
 var right_eye_increment = 5;
+
+var previous_left_wheel_setpoint;
+var previous_right_wheel_setpoint;
+var previous_head_setpoint;
+var previous_left_eye_increment;
+var previous_right_eye_increment;
+
+function set_previous_values() {
+	previous_left_wheel_setpoint = left_wheel_setpoint;
+	previous_right_wheel_setpoint = right_wheel_setpoint;
+	previous_head_setpoint = head_setpoint;
+	previous_left_eye_increment = left_eye_increment;
+	previous_right_eye_increment = right_eye_increment;
+}
+
+function previous_values_are_equal() {
+	return previous_left_wheel_setpoint == left_wheel_setpoint &&
+		previous_right_wheel_setpoint == right_wheel_setpoint &&
+		previous_head_setpoint == head_setpoint &&
+		previous_left_eye_increment == left_eye_increment &&
+		previous_right_eye_increment == right_eye_increment;
+}
 
 var keys = {
 	PageUp: false,
@@ -19,10 +44,9 @@ var keys = {
 function ws_onerror(error) {
 	document.getElementById("banner").innerHTML = `[error] ${error.message}`;
 	init_ws();
-};
+}
 
-function ws_onopen(e) {
-	document.getElementById("banner").innerHTML = "Connected";
+function reset_movement() {
 	/* reset all, in particular,  re-synchronize the eyes */
 	left_eye_increment = 0;
 	right_eye_increment = 0;
@@ -34,7 +58,12 @@ function ws_onopen(e) {
 	left_eye_increment = 5;
 	right_eye_increment = 5;
 	send_message();
-};
+}
+
+function ws_onopen(e) {
+	document.getElementById("banner").innerHTML = "Connected";
+	reset_movement();
+}
 
 function init_ws() {
 	ws = new WebSocket("ws://192.168.4.1:81");
@@ -43,6 +72,8 @@ function init_ws() {
 }
 
 function send_message(e) {
+	if (previous_values_are_equal())
+		return;
 	var msg = {
 		left_wheel : left_wheel_setpoint,
 		right_wheel : right_wheel_setpoint,
@@ -55,39 +86,30 @@ function send_message(e) {
 		return;
 	}
 	ws.send(JSON.stringify(msg));
+	set_previous_values();
 }
 
 document.onkeypress = function(e) {
 	if (e.which == 101) { // e
 		left_wheel_setpoint = left_wheel_setpoint + 1;
-		send_message();
 	} else if (e.which == 106) { // j
 		left_wheel_setpoint = left_wheel_setpoint - 1;
-		send_message();
 	} else if (e.which == 117) { // u
 		right_wheel_setpoint = right_wheel_setpoint + 1;
-		send_message();
 	} else if (e.which == 107) { // k
 		right_wheel_setpoint = right_wheel_setpoint - 1;
-		send_message();
 	} else if (e.which == 105) { // i
 		head_setpoint = head_setpoint + 1;
-		send_message();
 	} else if (e.which == 120) { // x
 		head_setpoint = head_setpoint - 1;
-		send_message();
 	} else if (e.which == 97) { // a
 		left_eye_increment = left_eye_increment + 1;
-		send_message();
 	} else if (e.which == 59) { // ;
 		left_eye_increment = left_eye_increment - 1;
-		send_message();
 	} else if (e.which == 111) { // o
 		right_eye_increment = right_eye_increment + 1;
-		send_message();
 	} else if (e.which == 113) { // q
 		right_eye_increment = right_eye_increment - 1;
-		send_message();
 	}
 }
 
@@ -173,10 +195,10 @@ function updateHead() {
 
 function on_control_down(e) {
 	/* e.code if keyboard event, e.currentTarget.id if mouse event */
-	element_name = e.code ? e.code : e.currentTarget.id;
+	var element_name = e.code ? e.code : e.currentTarget.id;
 	document.getElementById("banner").innerHTML = element_name;
 
-	element = document.getElementById(element_name);
+	var element = document.getElementById(element_name);
 	if (element) {
 		e.preventDefault();
 		if (keys[element_name])
@@ -210,9 +232,9 @@ document.onkeydown = on_control_down;
  */
 
 function on_control_up(e) {
-	element_name = e.code ? e.code : e.currentTarget.id;
+	var element_name = e.code ? e.code : e.currentTarget.id;
 
-	element = document.getElementById(element_name);
+	var element = document.getElementById(element_name);
 	if (element) {
 		e.preventDefault();
 		keys[element_name] = false;
@@ -234,9 +256,9 @@ for (var key in keys) {
 
 function on_accelerometer_down(e) {
 	/* e.code if keyboard event, e.currentTarget.id if mouse event */
-	element_name = e.code ? e.code : e.currentTarget.id;
+	var element_name = e.code ? e.code : e.currentTarget.id;
 
-	element = document.getElementById(element_name);
+	var element = document.getElementById(element_name);
 	if (element) {
 		e.preventDefault();
 		element.style.backgroundColor = "#cbcbf1";
@@ -245,13 +267,14 @@ function on_accelerometer_down(e) {
 }
 
 function on_accelerometer_up(e) {
-	element_name = e.code ? e.code : e.currentTarget.id;
+	var element_name = e.code ? e.code : e.currentTarget.id;
 
-	element = document.getElementById(element_name);
+	var element = document.getElementById(element_name);
 	if (element) {
 		e.preventDefault();
 		element.style.backgroundColor = "#f6f6ff";
 		window.ondevicemotion = undefined;
+		reset_movement();
 	}
 }
 
@@ -303,15 +326,23 @@ function on_device_motion(event) {
 	if (gravity[1] > -1 && gravity[1] < 1) {
 		if (gravity[0] > 4.8 && gravity[0] < 6.8) {
 			/* common neutral zone, no movement */
-			left_wheel_setpoint = 0;
-			right_wheel_setpoint = 0;
+			left_wheel_setpoint = -1;
+			right_wheel_setpoint = -1;
 			console.log("common neutral zone");
 		} else if (gravity[0] > 6.8) {
 			/* neutral zone for y, speed proportional to distance to center */
 			intensity = (gravity[0] - 6.8) / (9.8 - 6.8);
-			left_wheel_setpoint = intensity * 90 + 90;
-			right_wheel_setpoint = 180 - left_wheel_setpoint;
+			right_wheel_setpoint = Math.round(intensity * 90 + 90);
+			left_wheel_setpoint = 180 - right_wheel_setpoint;
 			console.log("y neutral zone");
+			document.getElementById("intensity").innerHTML = intensity;
+		} else if (gravity[0] < 4.8) {
+			/* neutral zone for y, speed proportional to distance to center */
+			intensity = (gravity[0] - 4.8) / (9.8 - 4.8);
+			right_wheel_setpoint = Math.round(intensity * 90 + 90);
+			left_wheel_setpoint = 180 - right_wheel_setpoint;
+			console.log("y neutral zone");
+			document.getElementById("intensity").innerHTML = intensity;
 		}
 	}
 
@@ -319,14 +350,14 @@ function on_device_motion(event) {
 		"x = " + Number.parseFloat(gravity[0]).toFixed(2) +
 		", y = " + Number.parseFloat(gravity[1]).toFixed(2) +
 		", z = " + Number.parseFloat(gravity[2]).toFixed(2);
-
-	send_message();
 };
+
+window.setInterval(send_message, 50);
 
 if (!window.DeviceOrientationEvent)
 	gravity_element.innerHTML = "DeviceOrientation isn't supported";
 
-function accelerometer_on_click(e) {
+function fullscreen_on_click(e) {
 	if (window.fullScreen)
 		document.exitFullscreen();
 	else
@@ -334,6 +365,6 @@ function accelerometer_on_click(e) {
 	window.screen.mozLockOrientation("landscape");
 }
 
-var accelerometer = document.getElementById("fullscreen");
-accelerometer.ontouchstart = accelerometer_on_click;
+var fullscreen = document.getElementById("fullscreen");
+fullscreen.ontouchstart = fullscreen_on_click;
 
